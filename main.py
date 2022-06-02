@@ -11,6 +11,7 @@ import pyrr
 x,y,z=0,0,0
 r,g,b=0.0,0.0,0.0
 theta=0
+far=10
 
 def init_window():
     # initialisation de la librairie glfw
@@ -22,7 +23,7 @@ def init_window():
     glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
     # création et parametrage de la fenêtre
     glfw.window_hint(glfw.RESIZABLE, False)
-    window = glfw.create_window(800, 800, 'OpenGL', None, None)
+    window = glfw.create_window(800, 800, 'Test', None, None)
     # parametrage de la fonction de gestion des évènements
     glfw.set_key_callback(window, key_callback)
     return window
@@ -35,7 +36,7 @@ def init_context(window):
     GL.glEnable(GL.GL_DEPTH_TEST)
     # choix de la couleur de fond
 
-    GL.glClearColor(0.3, 0.1, 0.7, 0.5)
+    GL.glClearColor(0.3, 0.1, 0.7, 1.0)
 
     print(f"OpenGL: {GL.glGetString(GL.GL_VERSION).decode('ascii')}")
 
@@ -133,6 +134,7 @@ def key_callback(win, key, scancode, action, mods):
     global x,y,z
     global r,g,b
     global theta
+    global far
     # sortie du programme si appui sur la touche 'echap'
     if key == glfw.KEY_ESCAPE and action == glfw.PRESS:
         glfw.set_window_should_close(win, glfw.TRUE)
@@ -174,6 +176,15 @@ def key_callback(win, key, scancode, action, mods):
         theta-=np.pi/4
         display_rotation_callback(theta)
 
+    # Projection
+    if key == glfw.KEY_Y and action == glfw.PRESS:
+        far+=0.01
+        display_projection_callback(far)
+    
+    if key == glfw.KEY_H and action == glfw.PRESS:
+        far-=0.01
+        display_projection_callback(far)
+
 def display_callback(x,y,z):
     # Récupère l'identifiant du programme courant
     prog = GL.glGetIntegerv(GL.GL_CURRENT_PROGRAM)
@@ -209,8 +220,20 @@ def display_rotation_callback(theta):
     rot4= pyrr.matrix44.create_from_matrix33(rot3)
     # Modifie la variable pour le programme courant 
     GL.glUniformMatrix4fv(loc, 1, GL.GL_FALSE, rot4)
-    
 
+def display_projection_callback(far):
+    # Récupère l'identifiant du programme courant
+    prog = GL.glGetIntegerv(GL.GL_CURRENT_PROGRAM)
+    # Récupère l'identifiant de la variable translation dans le programme courant 
+    loc = GL.glGetUniformLocation(prog, "projection")
+    # Vérifie que la variable existe
+    if loc == -1 :
+        print("Pas de variable uniforme : projection")
+    # Création matrice 4x4
+    projection = pyrr.matrix44.create_perspective_projection_matrix(50, 1, 0.5, far)
+    # Modifie la variable pour le programme courant 
+    GL.glUniformMatrix4fv(loc, 1, GL.GL_FALSE, projection)
+    
 def main():
     window = init_window()
     init_context(window)

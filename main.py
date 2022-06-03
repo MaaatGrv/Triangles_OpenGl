@@ -8,7 +8,7 @@ import numpy as np
 import random as rd
 import pyrr
 
-x,y,z=0,0,0
+x,y,z=0,0,-5
 r,g,b=0.0,0.0,0.0
 theta=0
 far=10
@@ -44,7 +44,8 @@ def init_program():
     GL.glUseProgram(create_program_from_file('shader.vert', 'shader.frag'))
         
 def init_data():
-    sommets = np.array(((0, 0, 0), (0.5, 0, 0), (0, 0.5, 0)), np.float32)
+    sommets = np.array(((0, 0, 0), (1, 0, 0), (0, 1, 0),(0, 0, 0), (1, 0, 0), (0, 0, 1)), np.float32)
+    # sommets = np.array(((0, 0, 0), (1, 0, 0), (0, 1, 0),(0, 0, 0), (1, 0, 0), (0, 0, 1)), np.float32)
     # attribution d'une liste d'e ́tat (1 indique la cre ́ation d'une seule liste)
     vao = GL.glGenVertexArrays(1)
     # affectation de la liste d'e ́tat courante
@@ -73,9 +74,11 @@ def run(window):
         GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
 
         # display_callback(glfw.get_time()%-1,0.0,0.0)
-        display_callback(x,y,0.0)
+        display_callback(x,y,z)
         display_color_callback(r,g,b)
-        GL.glDrawArrays(GL.GL_TRIANGLES, 0, 3)
+        display_projection_callback(far)
+        display_rotation_callback(theta)
+        GL.glDrawArrays(GL.GL_TRIANGLES, 0, 6)
 
         #  l'affichage se fera ici
 
@@ -141,16 +144,16 @@ def key_callback(win, key, scancode, action, mods):
 
     # deplacement directionnels
     if key == glfw.KEY_RIGHT  and action == glfw.PRESS:
-        x+=0.01
+        x+=0.1
         display_callback(1.0,x,0.0)
     if key == glfw.KEY_LEFT and action == glfw.PRESS:
-        x-=0.01
+        x-=0.1
         display_callback(-1.0,x,0.0)
     if key == glfw.KEY_UP and action == glfw.PRESS:
-        y+=0.01
+        y+=0.1
         display_callback(0.0,y,0.0)
     if key == glfw.KEY_DOWN and action == glfw.PRESS:
-        y-=0.01
+        y-=0.1
         display_callback(0.0,y,0.0)
     
     # Changement de couleur
@@ -178,11 +181,11 @@ def key_callback(win, key, scancode, action, mods):
 
     # Projection
     if key == glfw.KEY_Y and action == glfw.PRESS:
-        far+=0.01
+        z+=0.1
         display_projection_callback(far)
     
     if key == glfw.KEY_H and action == glfw.PRESS:
-        far-=0.01
+        z-=0.1
         display_projection_callback(far)
 
 def display_callback(x,y,z):
@@ -230,7 +233,7 @@ def display_projection_callback(far):
     if loc == -1 :
         print("Pas de variable uniforme : projection")
     # Création matrice 4x4
-    projection = pyrr.matrix44.create_perspective_projection_matrix(50, 1, 0.5, far)
+    projection = pyrr.matrix44.create_perspective_projection_matrix(50, 1, 0.5, 10)
     # Modifie la variable pour le programme courant 
     GL.glUniformMatrix4fv(loc, 1, GL.GL_FALSE, projection)
     
